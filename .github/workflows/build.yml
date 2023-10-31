@@ -16,4 +16,4 @@ jobs:
           cd pgvector
           make
           sudo make install
-      - run: zig run example.zig -lpq
+      - run: zig run example.zig -I/usr/include/postgresql -lc -lpq

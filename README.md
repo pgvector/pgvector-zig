@@ -75,11 +75,11 @@ To get started with development:
 git clone https://github.com/pgvector/pgvector-zig.git
 cd pgvector-zig
 createdb pgvector_zig_test
-zig run example.zig -lpq
+zig run example.zig -lc -lpq
 ```
 
 Specify the path to libpq if needed:
 
 ```sh
-zig run example.zig -I/opt/homebrew/opt/libpq/include -L/opt/homebrew/opt/libpq/lib -lpq
+zig run example.zig -I/opt/homebrew/opt/libpq/include -L/opt/homebrew/opt/libpq/lib -lc -lpq
 ```
