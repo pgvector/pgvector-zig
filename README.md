@@ -51,9 +51,9 @@ const res = pg.PQexecParams(conn, "SELECT * FROM items ORDER BY embedding <-> $1
 Add an approximate index
 
 ```zig
-const res = pg.PQexec(conn, "CREATE INDEX ON items USING ivfflat (embedding vector_l2_ops) WITH (lists = 100)");
-// or
 const res = pg.PQexec(conn, "CREATE INDEX ON items USING hnsw (embedding vector_l2_ops)");
+// or
+const res = pg.PQexec(conn, "CREATE INDEX ON items USING ivfflat (embedding vector_l2_ops) WITH (lists = 100)");
 ```
 
 Use `vector_ip_ops` for inner product and `vector_cosine_ops` for cosine distance
