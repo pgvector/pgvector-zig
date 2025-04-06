@@ -22,18 +22,18 @@ pub fn main() void {
     assert(pg.PQresultStatus(res) == pg.PGRES_COMMAND_OK);
     pg.PQclear(res);
 
-    const paramValues = [3:0][*c]const u8 {"[1,1,1]", "[2,2,2]", "[1,1,2]"};
+    const paramValues = [3:0][*c]const u8{ "[1,1,1]", "[2,2,2]", "[1,1,2]" };
     res = pg.PQexecParams(conn, "INSERT INTO items (embedding) VALUES ($1), ($2), ($3)", 3, null, &paramValues, null, null, 0);
     assert(pg.PQresultStatus(res) == pg.PGRES_COMMAND_OK);
     pg.PQclear(res);
 
-    const paramValues2 = [1:0][*c]const u8 {"[1,1,1]"};
+    const paramValues2 = [1:0][*c]const u8{"[1,1,1]"};
     res = pg.PQexecParams(conn, "SELECT * FROM items ORDER BY embedding <-> $1 LIMIT 5", 1, null, &paramValues2, null, null, 0);
     assert(pg.PQresultStatus(res) == pg.PGRES_TUPLES_OK);
     const ntuples = pg.PQntuples(res);
     var i: c_int = 0;
     while (i < ntuples) {
-        print("{s}: {s}\n", .{pg.PQgetvalue(res, i, 0), pg.PQgetvalue(res, i, 1)});
+        print("{s}: {s}\n", .{ pg.PQgetvalue(res, i, 0), pg.PQgetvalue(res, i, 1) });
         i += 1;
     }
     pg.PQclear(res);
