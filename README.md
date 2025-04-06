@@ -37,14 +37,14 @@ const res = pg.PQexec(conn, "CREATE TABLE items (id bigserial PRIMARY KEY, embed
 Insert vectors
 
 ```zig
-const paramValues = [2:0][*c]const u8 {"[1,2,3]", "[4,5,6]"};
+const paramValues = [2:0][*c]const u8{ "[1,2,3]", "[4,5,6]" };
 const res = pg.PQexecParams(conn, "INSERT INTO items (embedding) VALUES ($1), ($2)", 2, null, &paramValues, null, null, 0);
 ```
 
 Get the nearest neighbors
 
 ```zig
-const paramValues = [1:0][*c]const u8 {"[3,1,2]"};
+const paramValues = [1:0][*c]const u8{ "[3,1,2]" };
 const res = pg.PQexecParams(conn, "SELECT * FROM items ORDER BY embedding <-> $1 LIMIT 5", 1, null, &paramValues, null, null, 0);
 ```
 
