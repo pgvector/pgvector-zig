@@ -30,14 +30,14 @@ _ = try conn.exec("CREATE TABLE items (id bigserial PRIMARY KEY, embedding vecto
 Insert vectors
 
 ```zig
-const params = .{ "[1,1,1]", "[2,2,2]", "[1,1,2]" };
-_ = try conn.exec("INSERT INTO items (embedding) VALUES ($1), ($2), ($3)", params);
+const params = .{ "[1,2,3]", "[4,5,6]" };
+_ = try conn.exec("INSERT INTO items (embedding) VALUES ($1), ($2)", params);
 ```
 
 Get the nearest neighbors
 
 ```zig
-var result = try conn.query("SELECT id FROM items ORDER BY embedding <-> $1 LIMIT 5", .{"[1,1,1]"});
+var result = try conn.query("SELECT id FROM items ORDER BY embedding <-> $1 LIMIT 5", .{"[3,1,2]"});
 ```
 
 Add an approximate index
