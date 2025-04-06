@@ -10,7 +10,7 @@ Supports [pg.zig](https://github.com/karlseguin/pg.zig) and [libpq](https://www.
 
 Follow the instructions for your database library:
 
-- [pg.zig](#pg-zig)
+- [pg.zig](#pgzig)
 - [libpq](#libpq)
 
 ## pg.zig
