@@ -21,10 +21,11 @@ pub fn main() !void {
 
     _ = try conn.exec("CREATE TABLE pg_items (id bigserial PRIMARY KEY, embedding vector(3))", .{});
 
-    const params = .{ "[1,1,1]", "[2,2,2]", "[1,1,2]" };
-    _ = try conn.exec("INSERT INTO pg_items (embedding) VALUES ($1), ($2), ($3)", params);
+    const params = .{ [_]f32{ 1, 1, 1 }, [_]f32{ 2, 2, 2 }, [_]f32{ 1, 1, 2 } };
+    _ = try conn.exec("INSERT INTO pg_items (embedding) VALUES ($1::float4[]::vector), ($2::float4[]::vector), ($3::float4[]::vector)", params);
 
-    var result = try conn.query("SELECT id FROM pg_items ORDER BY embedding <-> $1 LIMIT 5", .{"[1,1,1]"});
+    const embedding = [_]f32{ 3, 1, 2 };
+    var result = try conn.query("SELECT id FROM pg_items ORDER BY embedding <-> $1::float4[]::vector LIMIT 5", .{embedding});
     defer result.deinit();
     while (try result.next()) |row| {
         const id = row.get(i64, 0);
