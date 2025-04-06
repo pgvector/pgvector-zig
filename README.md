@@ -32,7 +32,7 @@ Insert vectors
 ```zig
 const embedding1 = [_]f32{ 1, 2, 3 };
 const embedding2 = [_]f32{ 4, 5, 6 };
-_ = try conn.exec("INSERT INTO items (embedding) VALUES ($1::float4[]::vector), ($2::float4[]::vector)", .{ embedding1, embedding2 });
+_ = try conn.exec("INSERT INTO items (embedding) VALUES ($1::float4[]), ($2::float4[])", .{ embedding1, embedding2 });
 ```
 
 Get the nearest neighbors
