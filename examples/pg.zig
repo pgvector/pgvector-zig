@@ -3,9 +3,10 @@ const std = @import("std");
 const print = std.debug.print;
 
 pub fn main() !void {
-    const allocator = std.heap.c_allocator;
+    var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
+    const allocator = gpa.allocator();
     var pool = try pg.Pool.init(allocator, .{ .auth = .{
-        .username = std.mem.sliceTo(std.c.getenv("USER").?, 0),
+        .username = std.mem.sliceTo(std.posix.getenv("USER").?, 0),
         .database = "pgvector_zig_test",
     } });
     defer pool.deinit();

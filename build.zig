@@ -8,7 +8,6 @@ pub fn build(b: *std.Build) void {
     });
     const pg = b.dependency("pg", .{});
     pgExe.root_module.addImport("pg", pg.module("pg"));
-    pgExe.linkLibC();
     b.installArtifact(pgExe);
 
     const libpqExe = b.addExecutable(.{
