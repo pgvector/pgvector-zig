@@ -24,7 +24,7 @@ pub fn main() !void {
     const params = .{ [_]f32{ 1, 1, 1 }, [_]f32{ 2, 2, 2 }, [_]f32{ 1, 1, 2 } };
     _ = try conn.exec("INSERT INTO pg_items (embedding) VALUES ($1::float4[]), ($2::float4[]), ($3::float4[])", params);
 
-    const queryParams = .{[_]f32{ 3, 1, 2 }};
+    const queryParams = .{[_]f32{ 1, 1, 1 }};
     var result = try conn.query("SELECT id FROM pg_items ORDER BY embedding <-> $1::float4[]::vector LIMIT 5", queryParams);
     defer result.deinit();
     while (try result.next()) |row| {
