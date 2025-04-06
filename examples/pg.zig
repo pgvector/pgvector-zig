@@ -1,10 +1,11 @@
 const pg = @import("pg");
 const std = @import("std");
-const print = std.debug.print;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
+    defer std.debug.assert(gpa.deinit() == .ok);
     const allocator = gpa.allocator();
+
     var pool = try pg.Pool.init(allocator, .{ .auth = .{
         .username = std.mem.sliceTo(std.posix.getenv("USER").?, 0),
         .database = "pgvector_zig_test",
@@ -27,6 +28,6 @@ pub fn main() !void {
     defer result.deinit();
     while (try result.next()) |row| {
         const id = row.get(i64, 0);
-        print("{d}\n", .{id});
+        std.debug.print("{d}\n", .{id});
     }
 }
