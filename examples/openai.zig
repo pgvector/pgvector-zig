@@ -49,11 +49,10 @@ fn embed(allocator: std.mem.Allocator, input: []const []const u8, apiKey: []cons
 }
 
 pub fn main() !void {
-    const apiKey = std.posix.getenv("OPENAI_API_KEY");
-    if (apiKey == null) {
+    const apiKey = std.posix.getenv("OPENAI_API_KEY") orelse {
         std.debug.print("Set OPENAI_API_KEY\n", .{});
         std.process.exit(1);
-    }
+    };
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
     defer std.debug.assert(gpa.deinit() == .ok);
@@ -73,7 +72,7 @@ pub fn main() !void {
     _ = try conn.exec("CREATE TABLE documents (id bigserial PRIMARY KEY, content text, embedding vector(1536))", .{});
 
     const documents = [_][]const u8{ "The dog is barking", "The cat is purring", "The bear is growling" };
-    const documentsResponse = try embed(allocator, &documents, apiKey.?);
+    const documentsResponse = try embed(allocator, &documents, apiKey);
     defer documentsResponse.deinit();
     for (&documents, documentsResponse.value.data) |content, object| {
         const params = .{ content, object.embedding };
@@ -81,7 +80,7 @@ pub fn main() !void {
     }
 
     const query = "forest";
-    const queryResponse = try embed(allocator, &[_][]const u8{query}, apiKey.?);
+    const queryResponse = try embed(allocator, &[_][]const u8{query}, apiKey);
     defer queryResponse.deinit();
     const queryEmbedding = queryResponse.value.data[0].embedding;
     var result = try conn.query("SELECT content FROM documents ORDER BY embedding <=> $1::float4[]::vector LIMIT 5", .{queryEmbedding});
