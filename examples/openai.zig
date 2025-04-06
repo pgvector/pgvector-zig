@@ -59,7 +59,7 @@ pub fn main() !void {
     const allocator = gpa.allocator();
 
     var pool = try pg.Pool.init(allocator, .{ .auth = .{
-        .username = std.mem.sliceTo(std.posix.getenv("USER").?, 0),
+        .username = std.posix.getenv("USER").?,
         .database = "pgvector_example",
     } });
     defer pool.deinit();
