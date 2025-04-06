@@ -44,7 +44,7 @@ const res = pg.PQexecParams(conn, "INSERT INTO items (embedding) VALUES ($1), ($
 Get the nearest neighbors
 
 ```zig
-const paramValues = [1:0][*c]const u8{ "[3,1,2]" };
+const paramValues = [1:0][*c]const u8{"[3,1,2]"};
 const res = pg.PQexecParams(conn, "SELECT * FROM items ORDER BY embedding <-> $1 LIMIT 5", 1, null, &paramValues, null, null, 0);
 ```
 
