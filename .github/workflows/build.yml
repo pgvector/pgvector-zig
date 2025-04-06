@@ -17,4 +17,5 @@ jobs:
           make
           sudo make install
       - run: zig build
+      - run: zig-out/bin/pg
       - run: zig-out/bin/libpq

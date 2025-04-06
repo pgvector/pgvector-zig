@@ -2,7 +2,7 @@
 
 [pgvector](https://github.com/pgvector/pgvector) examples for Zig
 
-Supports [libpq](https://www.postgresql.org/docs/current/libpq.html)
+Supports [pg.zig](https://github.com/karlseguin/pg.zig) and [libpq](https://www.postgresql.org/docs/current/libpq.html)
 
 [![Build Status](https://github.com/pgvector/pgvector-zig/actions/workflows/build.yml/badge.svg)](https://github.com/pgvector/pgvector-zig/actions)
 
@@ -10,7 +10,47 @@ Supports [libpq](https://www.postgresql.org/docs/current/libpq.html)
 
 Follow the instructions for your database library:
 
+- [pg.zig](#pg-zig)
 - [libpq](#libpq)
+
+## pg.zig
+
+Enable the extension
+
+```zig
+_ = try conn.exec("CREATE EXTENSION IF NOT EXISTS vector", .{});
+```
+
+Create a table
+
+```zig
+_ = try conn.exec("CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector(3))", .{});
+```
+
+Insert vectors
+
+```zig
+const params = .{ "[1,1,1]", "[2,2,2]", "[1,1,2]" };
+_ = try conn.exec("INSERT INTO items (embedding) VALUES ($1), ($2), ($3)", params);
+```
+
+Get the nearest neighbors
+
+```zig
+var result = try conn.query("SELECT id FROM items ORDER BY embedding <-> $1 LIMIT 5", .{"[1,1,1]"});
+```
+
+Add an approximate index
+
+```zig
+_ = try conn.exec("CREATE INDEX ON items USING hnsw (embedding vector_l2_ops)", .{});
+// or
+_ = try conn.exec("CREATE INDEX ON items USING ivfflat (embedding vector_l2_ops) WITH (lists = 100)", .{});
+```
+
+Use `vector_ip_ops` for inner product and `vector_cosine_ops` for cosine distance
+
+See a [full example](examples/pg.zig)
 
 ## libpq
 
@@ -76,6 +116,7 @@ git clone https://github.com/pgvector/pgvector-zig.git
 cd pgvector-zig
 createdb pgvector_zig_test
 zig build
+zig-out/bin/pg
 zig-out/bin/libpq
 ```
 
