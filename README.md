@@ -13,6 +13,10 @@ Follow the instructions for your database library:
 - [pg.zig](#pgzig)
 - [libpq](#libpq)
 
+Or check out an example:
+
+- [Embeddings](examples/openai.zig) with OpenAI
+
 ## pg.zig
 
 Enable the extension
