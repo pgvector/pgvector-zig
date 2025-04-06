@@ -58,7 +58,7 @@ const res = pg.PQexec(conn, "CREATE INDEX ON items USING ivfflat (embedding vect
 
 Use `vector_ip_ops` for inner product and `vector_cosine_ops` for cosine distance
 
-See a [full example](example.zig)
+See a [full example](examples/libpq.zig)
 
 ## Contributing
 
@@ -76,7 +76,7 @@ git clone https://github.com/pgvector/pgvector-zig.git
 cd pgvector-zig
 createdb pgvector_zig_test
 zig build
-zig-out/bin/example
+zig-out/bin/libpq
 ```
 
 Specify the path to libpq if needed:
