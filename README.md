@@ -17,6 +17,7 @@ Or check out an example:
 
 - [Embeddings](examples/openai.zig) with OpenAI
 - [Embeddings](examples/cohere.zig) with Cohere
+- [Hybrid search](examples/hybrid.zig) with Ollama (Reciprocal Rank Fusion)
 
 ## pg.zig
 

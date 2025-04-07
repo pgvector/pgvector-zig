@@ -34,4 +34,12 @@ pub fn build(b: *std.Build) void {
     });
     cohereExe.root_module.addImport("pg", pg.module("pg"));
     b.installArtifact(cohereExe);
+
+    const hybridExe = b.addExecutable(.{
+        .name = "hybrid",
+        .root_source_file = b.path("examples/hybrid.zig"),
+        .target = b.graph.host,
+    });
+    hybridExe.root_module.addImport("pg", pg.module("pg"));
+    b.installArtifact(hybridExe);
 }
