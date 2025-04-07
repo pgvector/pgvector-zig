@@ -1,11 +1,6 @@
 const pg = @import("pg");
 const std = @import("std");
 
-const ApiData = struct {
-    input: []const []const u8,
-    model: []const u8,
-};
-
 const ApiObject = struct {
     embedding: []const f32,
 };
@@ -19,7 +14,7 @@ fn embed(allocator: std.mem.Allocator, input: []const []const u8, apiKey: []cons
     defer client.deinit();
 
     const uri = try std.Uri.parse("https://api.openai.com/v1/embeddings");
-    const data = ApiData{
+    const data = .{
         .input = input,
         .model = "text-embedding-3-small",
     };
