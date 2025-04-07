@@ -13,7 +13,7 @@ Follow the instructions for your database library:
 - [pg.zig](#pgzig)
 - [libpq](#libpq)
 
-Or check out an example:
+Or check out some examples:
 
 - [Embeddings](examples/openai.zig) with OpenAI
 - [Embeddings](examples/cohere.zig) with Cohere
