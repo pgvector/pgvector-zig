@@ -42,4 +42,12 @@ pub fn build(b: *std.Build) void {
     });
     hybridExe.root_module.addImport("pg", pg.module("pg"));
     b.installArtifact(hybridExe);
+
+    const sparseExe = b.addExecutable(.{
+        .name = "sparse",
+        .root_source_file = b.path("examples/sparse.zig"),
+        .target = b.graph.host,
+    });
+    sparseExe.root_module.addImport("pg", pg.module("pg"));
+    b.installArtifact(sparseExe);
 }
