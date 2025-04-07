@@ -1,15 +1,31 @@
 const pg = @import("pg");
 const std = @import("std");
 
-const ApiObject = struct {
-    embedding: []const f32,
+const Embeddings = struct {
+    parsed: std.json.Parsed(ApiResponse),
+
+    const ApiObject = struct {
+        embedding: []const f32,
+    };
+
+    const ApiResponse = struct {
+        data: []const ApiObject,
+    };
+
+    pub fn deinit(self: *Embeddings) void {
+        self.parsed.deinit();
+    }
+
+    pub fn get(self: *Embeddings, index: usize) ?[]const f32 {
+        const data = self.parsed.value.data;
+        if (index > data.len) {
+            return null;
+        }
+        return data[index].embedding;
+    }
 };
 
-const ApiResponse = struct {
-    data: []const ApiObject,
-};
-
-fn embed(allocator: std.mem.Allocator, input: []const []const u8, apiKey: []const u8) !std.json.Parsed(ApiResponse) {
+fn embed(allocator: std.mem.Allocator, input: []const []const u8, apiKey: []const u8) !Embeddings {
     var client = std.http.Client{ .allocator = allocator };
     defer client.deinit();
 
@@ -40,7 +56,8 @@ fn embed(allocator: std.mem.Allocator, input: []const []const u8, apiKey: []cons
     std.debug.assert(req.response.status == .ok);
     var rdr = std.json.reader(allocator, req.reader());
     defer rdr.deinit();
-    return try std.json.parseFromTokenSource(ApiResponse, allocator, &rdr, .{ .allocate = .alloc_always, .ignore_unknown_fields = true });
+    const parsed = try std.json.parseFromTokenSource(Embeddings.ApiResponse, allocator, &rdr, .{ .allocate = .alloc_always, .ignore_unknown_fields = true });
+    return Embeddings{ .parsed = parsed };
 }
 
 pub fn main() !void {
@@ -67,18 +84,17 @@ pub fn main() !void {
     _ = try conn.exec("CREATE TABLE documents (id bigserial PRIMARY KEY, content text, embedding vector(1536))", .{});
 
     const documents = [_][]const u8{ "The dog is barking", "The cat is purring", "The bear is growling" };
-    const documentsResponse = try embed(allocator, &documents, apiKey);
-    defer documentsResponse.deinit();
-    for (&documents, documentsResponse.value.data) |content, object| {
-        const params = .{ content, object.embedding };
+    var documentEmbeddings = try embed(allocator, &documents, apiKey);
+    defer documentEmbeddings.deinit();
+    for (&documents, 0..) |content, i| {
+        const params = .{ content, documentEmbeddings.get(i) };
         _ = try conn.exec("INSERT INTO documents (content, embedding) VALUES ($1, $2::float4[])", params);
     }
 
     const query = "forest";
-    const queryResponse = try embed(allocator, &[_][]const u8{query}, apiKey);
-    defer queryResponse.deinit();
-    const queryEmbedding = queryResponse.value.data[0].embedding;
-    var result = try conn.query("SELECT content FROM documents ORDER BY embedding <=> $1::float4[]::vector LIMIT 5", .{queryEmbedding});
+    var queryEmbeddings = try embed(allocator, &[_][]const u8{query}, apiKey);
+    defer queryEmbeddings.deinit();
+    var result = try conn.query("SELECT content FROM documents ORDER BY embedding <=> $1::float4[]::vector LIMIT 5", .{queryEmbeddings.get(0)});
     defer result.deinit();
     while (try result.next()) |row| {
         const content = row.get([]const u8, 0);
