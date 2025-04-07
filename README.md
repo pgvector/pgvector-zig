@@ -131,3 +131,10 @@ Specify the path to libpq if needed:
 ```sh
 zig build --search-prefix /opt/homebrew/opt/libpq
 ```
+
+To run an example:
+
+```sh
+createdb pgvector_example
+examples/openai
+```
