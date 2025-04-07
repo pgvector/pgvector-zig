@@ -16,6 +16,7 @@ Follow the instructions for your database library:
 Or check out an example:
 
 - [Embeddings](examples/openai.zig) with OpenAI
+- [Embeddings](examples/cohere.zig) with Cohere
 
 ## pg.zig
 

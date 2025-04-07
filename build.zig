@@ -26,4 +26,12 @@ pub fn build(b: *std.Build) void {
     });
     openaiExe.root_module.addImport("pg", pg.module("pg"));
     b.installArtifact(openaiExe);
+
+    const cohereExe = b.addExecutable(.{
+        .name = "cohere",
+        .root_source_file = b.path("examples/cohere.zig"),
+        .target = b.graph.host,
+    });
+    cohereExe.root_module.addImport("pg", pg.module("pg"));
+    b.installArtifact(cohereExe);
 }
