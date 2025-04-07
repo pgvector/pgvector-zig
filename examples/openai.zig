@@ -18,7 +18,7 @@ const Embeddings = struct {
 
     pub fn get(self: *Embeddings, index: usize) ?[]const f32 {
         const data = self.parsed.value.data;
-        if (index > data.len) {
+        if (index >= data.len) {
             return null;
         }
         return data[index].embedding;
