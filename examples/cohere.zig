@@ -5,7 +5,7 @@ const Embeddings = struct {
     parsed: std.json.Parsed(EmbedResponse),
 
     const EmbeddingsObject = struct {
-        float: []const []const f32,
+        ubinary: []const []const u8,
     };
 
     const EmbedResponse = struct {
@@ -16,8 +16,8 @@ const Embeddings = struct {
         self.parsed.deinit();
     }
 
-    pub fn get(self: *Embeddings, index: usize) ?[]const f32 {
-        const data = self.parsed.value.embeddings.float;
+    pub fn get(self: *Embeddings, index: usize) ?[]const u8 {
+        const data = self.parsed.value.embeddings.ubinary;
         return if (index < data.len) data[index] else null;
     }
 };
@@ -31,7 +31,7 @@ fn embed(allocator: std.mem.Allocator, texts: []const []const u8, inputType: []c
         .texts = texts,
         .model = "embed-english-v3.0",
         .input_type = inputType,
-        .embedding_types = [_][]const u8{"float"},
+        .embedding_types = [_][]const u8{"ubinary"},
     };
 
     var authorization = std.ArrayList(u8).init(allocator);
@@ -59,6 +59,14 @@ fn embed(allocator: std.mem.Allocator, texts: []const []const u8, inputType: []c
     return Embeddings{ .parsed = parsed };
 }
 
+fn bitString(allocator: std.mem.Allocator, data: []const u8) !std.ArrayList(u8) {
+    var buf = std.ArrayList(u8).init(allocator);
+    for (data) |v| {
+        try buf.writer().print("{b:08}", .{v});
+    }
+    return buf;
+}
+
 pub fn main() !void {
     const apiKey = std.posix.getenv("CO_API_KEY") orelse {
         std.debug.print("Set CO_API_KEY\n", .{});
@@ -80,20 +88,24 @@ pub fn main() !void {
 
     _ = try conn.exec("CREATE EXTENSION IF NOT EXISTS vector", .{});
     _ = try conn.exec("DROP TABLE IF EXISTS documents", .{});
-    _ = try conn.exec("CREATE TABLE documents (id bigserial PRIMARY KEY, content text, embedding vector(1024))", .{});
+    _ = try conn.exec("CREATE TABLE documents (id bigserial PRIMARY KEY, content text, embedding bit(1024))", .{});
 
     const documents = [_][]const u8{ "The dog is barking", "The cat is purring", "The bear is growling" };
     var documentEmbeddings = try embed(allocator, &documents, "search_document", apiKey);
     defer documentEmbeddings.deinit();
     for (&documents, 0..) |content, i| {
-        const params = .{ content, documentEmbeddings.get(i) };
-        _ = try conn.exec("INSERT INTO documents (content, embedding) VALUES ($1, $2::float4[])", params);
+        var bit = try bitString(allocator, documentEmbeddings.get(i).?);
+        defer bit.deinit();
+        const params = .{ content, bit.items };
+        _ = try conn.exec("INSERT INTO documents (content, embedding) VALUES ($1, $2)", params);
     }
 
     const query = "forest";
     var queryEmbeddings = try embed(allocator, &[_][]const u8{query}, "search_query", apiKey);
     defer queryEmbeddings.deinit();
-    var result = try conn.query("SELECT content FROM documents ORDER BY embedding <=> $1::float4[]::vector LIMIT 5", .{queryEmbeddings.get(0)});
+    var queryBit = try bitString(allocator, queryEmbeddings.get(0).?);
+    defer queryBit.deinit();
+    var result = try conn.query("SELECT content FROM documents ORDER BY embedding <~> $1 LIMIT 5", .{queryBit.items});
     defer result.deinit();
     while (try result.next()) |row| {
         const content = row.get([]const u8, 0);

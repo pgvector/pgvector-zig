@@ -16,7 +16,7 @@ Follow the instructions for your database library:
 Or check out some examples:
 
 - [Embeddings](examples/openai.zig) with OpenAI
-- [Embeddings](examples/cohere.zig) with Cohere
+- [Binary embeddings](examples/cohere.zig) with Cohere
 - [Hybrid search](examples/hybrid.zig) with Ollama (Reciprocal Rank Fusion)
 - [Sparse search](examples/sparse.zig) with Text Embeddings Inference
 
