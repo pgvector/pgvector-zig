@@ -26,10 +26,10 @@ fn embed(allocator: std.mem.Allocator, texts: []const []const u8, inputType: []c
     var client = std.http.Client{ .allocator = allocator };
     defer client.deinit();
 
-    const uri = try std.Uri.parse("https://api.cohere.com/v1/embed");
+    const uri = try std.Uri.parse("https://api.cohere.com/v2/embed");
     const data = .{
         .texts = texts,
-        .model = "embed-english-v3.0",
+        .model = "embed-v4.0",
         .input_type = inputType,
         .embedding_types = [_][]const u8{"ubinary"},
     };
@@ -88,7 +88,7 @@ pub fn main() !void {
 
     _ = try conn.exec("CREATE EXTENSION IF NOT EXISTS vector", .{});
     _ = try conn.exec("DROP TABLE IF EXISTS documents", .{});
-    _ = try conn.exec("CREATE TABLE documents (id bigserial PRIMARY KEY, content text, embedding bit(1024))", .{});
+    _ = try conn.exec("CREATE TABLE documents (id bigserial PRIMARY KEY, content text, embedding bit(1536))", .{});
 
     const documents = [_][]const u8{ "The dog is barking", "The cat is purring", "The bear is growling" };
     var documentEmbeddings = try embed(allocator, &documents, "search_document", apiKey);
