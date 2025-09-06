@@ -25,28 +25,30 @@ fn embed(allocator: std.mem.Allocator, inputs: []const []const u8) !Embeddings {
     var client = std.http.Client{ .allocator = allocator };
     defer client.deinit();
 
-    const uri = try std.Uri.parse("http://localhost:3000/embed");
+    const url = "http://localhost:3000/embed";
     const data = .{
         .inputs = inputs,
         .normalize = false,
     };
 
-    var buf: [16 * 1024]u8 = undefined;
-    var req = try client.open(.POST, uri, .{ .server_header_buffer = &buf });
-    defer req.deinit();
-    req.headers = .{
-        .content_type = .{ .override = "application/json" },
-    };
-    req.transfer_encoding = .chunked;
-    try req.send();
-    try std.json.stringify(data, .{}, req.writer());
-    try req.finish();
-    try req.wait();
+    const payload = try std.json.Stringify.valueAlloc(allocator, data, .{});
+    defer allocator.free(payload);
 
-    std.debug.assert(req.response.status == .ok);
-    var rdr = std.json.reader(allocator, req.reader());
-    defer rdr.deinit();
-    const parsed = try std.json.parseFromTokenSource([]const []const f32, allocator, &rdr, .{ .allocate = .alloc_always, .ignore_unknown_fields = true });
+    var body: std.Io.Writer.Allocating = .init(allocator);
+    defer body.deinit();
+
+    const response = try client.fetch(.{
+        .method = .POST,
+        .location = .{ .url = url },
+        .payload = payload,
+        .headers = .{
+            .content_type = .{ .override = "application/json" },
+        },
+        .response_writer = &body.writer,
+    });
+
+    std.debug.assert(response.status == .ok);
+    const parsed = try std.json.parseFromSlice([]const []const f32, allocator, body.written(), .{ .allocate = .alloc_always, .ignore_unknown_fields = true });
     return Embeddings{ .parsed = parsed };
 }
 

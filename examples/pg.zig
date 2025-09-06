@@ -2,11 +2,11 @@ const pg = @import("pg");
 const std = @import("std");
 
 const Vector = struct {
-    pub fn decode(allocator: std.mem.Allocator, data: []const u8) !std.ArrayList(f32) {
+    pub fn decode(allocator: std.mem.Allocator, data: []const u8) !std.array_list.Managed(f32) {
         const dim = std.mem.readInt(i16, data[0..2], .big);
         const unused = std.mem.readInt(i16, data[2..4], .big);
         try std.testing.expect(unused == 0);
-        var vec = std.ArrayList(f32).init(allocator);
+        var vec = std.array_list.Managed(f32).init(allocator);
         for (0..@intCast(dim)) |i| {
             try vec.append(@bitCast(std.mem.readInt(u32, data[4 + 4 * i ..][0..4], .big)));
         }

@@ -139,5 +139,5 @@ To run an example:
 
 ```sh
 createdb pgvector_example
-examples/openai
+zig-out/bin/openai
 ```

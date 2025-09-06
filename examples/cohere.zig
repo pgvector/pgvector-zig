@@ -26,7 +26,7 @@ fn embed(allocator: std.mem.Allocator, texts: []const []const u8, inputType: []c
     var client = std.http.Client{ .allocator = allocator };
     defer client.deinit();
 
-    const uri = try std.Uri.parse("https://api.cohere.com/v2/embed");
+    const url = "https://api.cohere.com/v2/embed";
     const data = .{
         .texts = texts,
         .model = "embed-v4.0",
@@ -34,33 +34,35 @@ fn embed(allocator: std.mem.Allocator, texts: []const []const u8, inputType: []c
         .embedding_types = [_][]const u8{"ubinary"},
     };
 
-    var authorization = std.ArrayList(u8).init(allocator);
+    var authorization = std.array_list.Managed(u8).init(allocator);
     defer authorization.deinit();
     try authorization.appendSlice("Bearer ");
     try authorization.appendSlice(apiKey);
 
-    var buf: [16 * 1024]u8 = undefined;
-    var req = try client.open(.POST, uri, .{ .server_header_buffer = &buf });
-    defer req.deinit();
-    req.headers = .{
-        .authorization = .{ .override = authorization.items },
-        .content_type = .{ .override = "application/json" },
-    };
-    req.transfer_encoding = .chunked;
-    try req.send();
-    try std.json.stringify(data, .{}, req.writer());
-    try req.finish();
-    try req.wait();
+    const payload = try std.json.Stringify.valueAlloc(allocator, data, .{});
+    defer allocator.free(payload);
 
-    std.debug.assert(req.response.status == .ok);
-    var rdr = std.json.reader(allocator, req.reader());
-    defer rdr.deinit();
-    const parsed = try std.json.parseFromTokenSource(Embeddings.EmbedResponse, allocator, &rdr, .{ .allocate = .alloc_always, .ignore_unknown_fields = true });
+    var body: std.Io.Writer.Allocating = .init(allocator);
+    defer body.deinit();
+
+    const response = try client.fetch(.{
+        .method = .POST,
+        .location = .{ .url = url },
+        .payload = payload,
+        .headers = .{
+            .authorization = .{ .override = authorization.items },
+            .content_type = .{ .override = "application/json" },
+        },
+        .response_writer = &body.writer,
+    });
+
+    std.debug.assert(response.status == .ok);
+    const parsed = try std.json.parseFromSlice(Embeddings.EmbedResponse, allocator, body.written(), .{ .allocate = .alloc_always, .ignore_unknown_fields = true });
     return Embeddings{ .parsed = parsed };
 }
 
-fn bitString(allocator: std.mem.Allocator, data: []const u8) !std.ArrayList(u8) {
-    var buf = std.ArrayList(u8).init(allocator);
+fn bitString(allocator: std.mem.Allocator, data: []const u8) !std.array_list.Managed(u8) {
+    var buf = std.array_list.Managed(u8).init(allocator);
     for (data) |v| {
         try buf.writer().print("{b:08}", .{v});
     }
