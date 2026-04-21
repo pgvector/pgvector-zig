@@ -5,7 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - run: sudo snap install zig --classic --beta
+      - run: echo /home/linuxbrew/.linuxbrew/bin >> $GITHUB_PATH
+      - run: brew install zig
       - uses: ankane/setup-postgres@v1
         with:
           database: pgvector_zig_test
