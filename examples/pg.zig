@@ -14,13 +14,12 @@ const Vector = struct {
     }
 };
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
-    defer std.debug.assert(gpa.deinit() == .ok);
-    const allocator = gpa.allocator();
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
+    const io = init.io;
 
-    var pool = try pg.Pool.init(allocator, .{ .auth = .{
-        .username = std.posix.getenv("USER").?,
+    var pool = try pg.Pool.init(io, allocator, .{ .auth = .{
+        .username = init.environ_map.get("USER").?,
         .database = "pgvector_zig_test",
     } });
     defer pool.deinit();
@@ -41,8 +40,8 @@ pub fn main() !void {
     var result = try conn.query("SELECT * FROM pg_items ORDER BY embedding <-> $1::float4[]::vector LIMIT 5", queryParams);
     defer result.deinit();
     while (try result.next()) |row| {
-        const id = row.get(i64, 0);
-        var embedding = try Vector.decode(allocator, row.get([]const u8, 1));
+        const id = try row.get(i64, 0);
+        var embedding = try Vector.decode(allocator, try row.get([]const u8, 1));
         defer embedding.deinit();
         std.debug.print("{d}: {any}\n", .{ id, embedding.items });
     }

@@ -17,10 +17,10 @@ pub fn build(b: *std.Build) void {
         .root_module = b.createModule(.{
             .root_source_file = b.path("examples/libpq.zig"),
             .target = b.graph.host,
+            .link_libc = true,
         }),
     });
-    libpqExe.linkSystemLibrary("pq");
-    libpqExe.linkLibC();
+    libpqExe.root_module.linkSystemLibrary("pq", .{});
     b.installArtifact(libpqExe);
 
     const openaiExe = b.addExecutable(.{

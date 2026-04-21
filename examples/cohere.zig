@@ -22,8 +22,8 @@ const Embeddings = struct {
     }
 };
 
-fn embed(allocator: std.mem.Allocator, texts: []const []const u8, inputType: []const u8, apiKey: []const u8) !Embeddings {
-    var client = std.http.Client{ .allocator = allocator };
+fn embed(io: std.Io, allocator: std.mem.Allocator, texts: []const []const u8, inputType: []const u8, apiKey: []const u8) !Embeddings {
+    var client = std.http.Client{ .allocator = allocator, .io = io };
     defer client.deinit();
 
     const url = "https://api.cohere.com/v2/embed";
@@ -64,23 +64,22 @@ fn embed(allocator: std.mem.Allocator, texts: []const []const u8, inputType: []c
 fn bitString(allocator: std.mem.Allocator, data: []const u8) !std.array_list.Managed(u8) {
     var buf = std.array_list.Managed(u8).init(allocator);
     for (data) |v| {
-        try buf.writer().print("{b:08}", .{v});
+        try buf.print("{b:08}", .{v});
     }
     return buf;
 }
 
-pub fn main() !void {
-    const apiKey = std.posix.getenv("CO_API_KEY") orelse {
+pub fn main(init: std.process.Init) !void {
+    const apiKey = init.environ_map.get("CO_API_KEY") orelse {
         std.debug.print("Set CO_API_KEY\n", .{});
         std.process.exit(1);
     };
 
-    var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
-    defer std.debug.assert(gpa.deinit() == .ok);
-    const allocator = gpa.allocator();
+    const allocator = init.gpa;
+    const io = init.io;
 
-    var pool = try pg.Pool.init(allocator, .{ .auth = .{
-        .username = std.posix.getenv("USER").?,
+    var pool = try pg.Pool.init(io, allocator, .{ .auth = .{
+        .username = init.environ_map.get("USER").?,
         .database = "pgvector_example",
     } });
     defer pool.deinit();
@@ -93,7 +92,7 @@ pub fn main() !void {
     _ = try conn.exec("CREATE TABLE documents (id bigserial PRIMARY KEY, content text, embedding bit(1536))", .{});
 
     const documents = [_][]const u8{ "The dog is barking", "The cat is purring", "The bear is growling" };
-    var documentEmbeddings = try embed(allocator, &documents, "search_document", apiKey);
+    var documentEmbeddings = try embed(io, allocator, &documents, "search_document", apiKey);
     defer documentEmbeddings.deinit();
     for (&documents, 0..) |content, i| {
         var bit = try bitString(allocator, documentEmbeddings.get(i).?);
@@ -103,14 +102,14 @@ pub fn main() !void {
     }
 
     const query = "forest";
-    var queryEmbeddings = try embed(allocator, &[_][]const u8{query}, "search_query", apiKey);
+    var queryEmbeddings = try embed(io, allocator, &[_][]const u8{query}, "search_query", apiKey);
     defer queryEmbeddings.deinit();
     var queryBit = try bitString(allocator, queryEmbeddings.get(0).?);
     defer queryBit.deinit();
     var result = try conn.query("SELECT content FROM documents ORDER BY embedding <~> $1 LIMIT 5", .{queryBit.items});
     defer result.deinit();
     while (try result.next()) |row| {
-        const content = row.get([]const u8, 0);
+        const content = try row.get([]const u8, 0);
         std.debug.print("{s}\n", .{content});
     }
 }
