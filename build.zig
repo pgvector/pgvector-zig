@@ -15,12 +15,6 @@ pub fn build(b: *std.Build) void {
     pgExe.root_module.addImport("pg", pg.module("pg"));
     b.installArtifact(pgExe);
 
-    const translate_c = b.addTranslateC(.{
-        .root_source_file = b.path("examples/libpq.h"),
-        .target = target,
-        .optimize = optimize,
-    });
-    translate_c.linkSystemLibrary("pq", .{});
     const libpqExe = b.addExecutable(.{
         .name = "libpq",
         .root_module = b.createModule(.{
@@ -28,6 +22,12 @@ pub fn build(b: *std.Build) void {
             .target = target,
         }),
     });
+    const translate_c = b.addTranslateC(.{
+        .root_source_file = b.path("examples/libpq.h"),
+        .target = target,
+        .optimize = optimize,
+    });
+    translate_c.linkSystemLibrary("pq", .{});
     libpqExe.root_module.addImport("libpq", translate_c.createModule());
     b.installArtifact(libpqExe);
 
