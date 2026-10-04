@@ -26,15 +26,9 @@ pub fn build(b: *std.Build) void {
         .root_module = b.createModule(.{
             .root_source_file = b.path("examples/libpq.zig"),
             .target = target,
-            .link_libc = true,
-            .imports = &.{
-                .{
-                    .name = "libpq",
-                    .module = translate_c.createModule(),
-                },
-            },
         }),
     });
+    libpqExe.root_module.addImport("libpq", translate_c.createModule());
     b.installArtifact(libpqExe);
 
     const openaiExe = b.addExecutable(.{
