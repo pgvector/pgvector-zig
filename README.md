@@ -69,16 +69,24 @@ Create `libpq.h`
 #include <libpq-fe.h>
 ```
 
+Add [translate-c](https://codeberg.org/ziglang/translate-c)
+
+```sh
+zig fetch --save git+https://codeberg.org/ziglang/translate-c
+```
+
 Update `build.zig`
 
 ```c
-const translate_c = b.addTranslateC(.{
-    .root_source_file = b.path("libpq.h"),
+const translate_c = b.dependency("translate_c", .{});
+const translator: Translator = .init(translate_c, .{
+    .c_source_file = b.path("libpq.h"),
     .target = target,
     .optimize = optimize,
 });
-translate_c.linkSystemLibrary("pq", .{});
-exe.root_module.addImport("libpq", translate_c.createModule());
+translator.addIncludePath(.{ .cwd_relative = "/usr/include/postgresql" }); // update as needed
+translator.mod.linkSystemLibrary("pq", .{});
+libpqExe.root_module.addImport("libpq", translator.mod);
 ```
 
 Import libpq

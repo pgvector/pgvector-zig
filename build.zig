@@ -1,4 +1,5 @@
 const std = @import("std");
+const Translator = @import("translate_c").Translator;
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -22,13 +23,15 @@ pub fn build(b: *std.Build) void {
             .target = target,
         }),
     });
-    const translate_c = b.addTranslateC(.{
-        .root_source_file = b.path("examples/libpq.h"),
+    const translate_c = b.dependency("translate_c", .{});
+    const translator: Translator = .init(translate_c, .{
+        .c_source_file = b.path("examples/libpq.h"),
         .target = target,
         .optimize = optimize,
     });
-    translate_c.linkSystemLibrary("pq", .{});
-    libpqExe.root_module.addImport("libpq", translate_c.createModule());
+    translator.addIncludePath(.{ .cwd_relative = "/usr/include/postgresql" });
+    translator.mod.linkSystemLibrary("pq", .{});
+    libpqExe.root_module.addImport("libpq", translator.mod);
     b.installArtifact(libpqExe);
 
     const openaiExe = b.addExecutable(.{

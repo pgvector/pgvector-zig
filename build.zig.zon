@@ -8,6 +8,10 @@
             .url = "git+https://github.com/karlseguin/pg.zig?ref=master#1ca2d58d412af038254da5a67882c5b68977c34a",
             .hash = "pg-0.0.0-Wp_7gY0XBwAT4SpnVT7CjXE5IbUUWMpUy10L_BkyPeg9",
         },
+        .translate_c = .{
+            .url = "git+https://codeberg.org/ziglang/translate-c#875969d3493e245e01bf5d7860f792d8f3eb9ef5",
+            .hash = "translate_c-0.0.0-Q_BUWoFOBwAhz77Zd15HCVuhTKzdUKc94kezmCeJ7IC_",
+        },
     },
     .paths = .{
         "build.zig",
