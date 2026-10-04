@@ -2,11 +2,11 @@
     .name = .pgvector,
     .version = "0.0.0",
     .fingerprint = 0x2dcfd56a3910ab6c,
-    .minimum_zig_version = "0.14.0",
+    .minimum_zig_version = "0.17.0",
     .dependencies = .{
         .pg = .{
-            .url = "git+https://github.com/karlseguin/pg.zig?ref=master#aef360fef7feb7a65a2d4b6347f413e988845dd6",
-            .hash = "pg-0.0.0-Wp_7gUN_BgC96OS2Q1oxXDjSOkdaSFBP_mYrmOzIw0m3",
+            .url = "git+https://github.com/karlseguin/pg.zig?ref=master#1ca2d58d412af038254da5a67882c5b68977c34a",
+            .hash = "pg-0.0.0-Wp_7gY0XBwAT4SpnVT7CjXE5IbUUWMpUy10L_BkyPeg9",
         },
     },
     .paths = .{

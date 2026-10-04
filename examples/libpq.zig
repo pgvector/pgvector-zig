@@ -1,9 +1,7 @@
 const std = @import("std");
 const expect = std.testing.expect;
 
-const pg = @cImport({
-    @cInclude("libpq-fe.h");
-});
+const pg = @import("libpq");
 
 pub fn main() !void {
     const conn = pg.PQconnectdb("postgres://localhost/pgvector_zig_test");

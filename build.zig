@@ -12,15 +12,26 @@ pub fn build(b: *std.Build) void {
     pgExe.root_module.addImport("pg", pg.module("pg"));
     b.installArtifact(pgExe);
 
+    const translate_c = b.addTranslateC(.{
+        .root_source_file = b.path("examples/libpq.h"),
+        .target = b.graph.host,
+        .optimize = b.standardOptimizeOption(.{}),
+    });
+    translate_c.linkSystemLibrary("pq", .{});
     const libpqExe = b.addExecutable(.{
         .name = "libpq",
         .root_module = b.createModule(.{
             .root_source_file = b.path("examples/libpq.zig"),
             .target = b.graph.host,
             .link_libc = true,
+            .imports = &.{
+                .{
+                    .name = "libpq",
+                    .module = translate_c.createModule(),
+                },
+            },
         }),
     });
-    libpqExe.root_module.linkSystemLibrary("pq", .{});
     b.installArtifact(libpqExe);
 
     const openaiExe = b.addExecutable(.{
