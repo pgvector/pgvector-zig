@@ -78,6 +78,7 @@ zig fetch --save git+https://codeberg.org/ziglang/translate-c
 Update `build.zig`
 
 ```c
+const Translator = @import("translate_c").Translator;
 const translate_c = b.dependency("translate_c", .{});
 const translator: Translator = .init(translate_c, .{
     .c_source_file = b.path("libpq.h"),

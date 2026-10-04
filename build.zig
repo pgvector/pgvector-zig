@@ -1,5 +1,4 @@
 const std = @import("std");
-const Translator = @import("translate_c").Translator;
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -23,6 +22,7 @@ pub fn build(b: *std.Build) void {
             .target = target,
         }),
     });
+    const Translator = @import("translate_c").Translator;
     const translate_c = b.dependency("translate_c", .{});
     const translator: Translator = .init(translate_c, .{
         .c_source_file = b.path("examples/libpq.h"),
