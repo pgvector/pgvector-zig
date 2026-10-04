@@ -63,12 +63,28 @@ See a [full example](examples/pg.zig)
 
 ## libpq
 
+Create `libpq.h`
+
+```c
+#include <libpq-fe.h>
+```
+
+Update `build.zig`
+
+```c
+const translate_c = b.addTranslateC(.{
+    .root_source_file = b.path("libpq.h"),
+    .target = target,
+    .optimize = optimize,
+});
+translate_c.linkSystemLibrary("pq", .{});
+exe.root_module.addImport("libpq", translate_c.createModule());
+```
+
 Import libpq
 
 ```zig
-const pg = @cImport({
-    @cInclude("libpq-fe.h");
-});
+const pg = @import("libpq");
 ```
 
 Enable the extension
