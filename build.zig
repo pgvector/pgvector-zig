@@ -1,11 +1,14 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
     const pgExe = b.addExecutable(.{
         .name = "pg",
         .root_module = b.createModule(.{
             .root_source_file = b.path("examples/pg.zig"),
-            .target = b.graph.host,
+            .target = target,
         }),
     });
     const pg = b.dependency("pg", .{});
@@ -14,15 +17,15 @@ pub fn build(b: *std.Build) void {
 
     const translate_c = b.addTranslateC(.{
         .root_source_file = b.path("examples/libpq.h"),
-        .target = b.graph.host,
-        .optimize = b.standardOptimizeOption(.{}),
+        .target = target,
+        .optimize = optimize,
     });
     translate_c.linkSystemLibrary("pq", .{});
     const libpqExe = b.addExecutable(.{
         .name = "libpq",
         .root_module = b.createModule(.{
             .root_source_file = b.path("examples/libpq.zig"),
-            .target = b.graph.host,
+            .target = target,
             .link_libc = true,
             .imports = &.{
                 .{
@@ -38,7 +41,7 @@ pub fn build(b: *std.Build) void {
         .name = "openai",
         .root_module = b.createModule(.{
             .root_source_file = b.path("examples/openai.zig"),
-            .target = b.graph.host,
+            .target = target,
         }),
     });
     openaiExe.root_module.addImport("pg", pg.module("pg"));
@@ -48,7 +51,7 @@ pub fn build(b: *std.Build) void {
         .name = "cohere",
         .root_module = b.createModule(.{
             .root_source_file = b.path("examples/cohere.zig"),
-            .target = b.graph.host,
+            .target = target,
         }),
     });
     cohereExe.root_module.addImport("pg", pg.module("pg"));
@@ -58,7 +61,7 @@ pub fn build(b: *std.Build) void {
         .name = "hybrid",
         .root_module = b.createModule(.{
             .root_source_file = b.path("examples/hybrid.zig"),
-            .target = b.graph.host,
+            .target = target,
         }),
     });
     hybridExe.root_module.addImport("pg", pg.module("pg"));
@@ -68,7 +71,7 @@ pub fn build(b: *std.Build) void {
         .name = "sparse",
         .root_module = b.createModule(.{
             .root_source_file = b.path("examples/sparse.zig"),
-            .target = b.graph.host,
+            .target = target,
         }),
     });
     sparseExe.root_module.addImport("pg", pg.module("pg"));
