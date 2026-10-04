@@ -86,7 +86,7 @@ const translator: Translator = .init(translate_c, .{
 });
 translator.addIncludePath(.{ .cwd_relative = "/usr/include/postgresql" }); // update as needed
 translator.mod.linkSystemLibrary("pq", .{});
-libpqExe.root_module.addImport("libpq", translator.mod);
+exe.root_module.addImport("libpq", translator.mod);
 ```
 
 Import libpq
