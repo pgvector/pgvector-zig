@@ -29,7 +29,7 @@ fn embed(io: std.Io, allocator: std.mem.Allocator, texts: []const []const u8, in
     const url = "https://api.cohere.com/v2/embed";
     const data = .{
         .texts = texts,
-        .model = "embed-v4.0",
+        .model = "embed-v5.0-pro",
         .input_type = inputType,
         .embedding_types = [_][]const u8{"ubinary"},
     };
@@ -89,7 +89,7 @@ pub fn main(init: std.process.Init) !void {
 
     _ = try conn.exec("CREATE EXTENSION IF NOT EXISTS vector", .{});
     _ = try conn.exec("DROP TABLE IF EXISTS documents", .{});
-    _ = try conn.exec("CREATE TABLE documents (id bigserial PRIMARY KEY, content text, embedding bit(1536))", .{});
+    _ = try conn.exec("CREATE TABLE documents (id bigserial PRIMARY KEY, content text, embedding bit(2048))", .{});
 
     const documents = [_][]const u8{ "The dog is barking", "The cat is purring", "The bear is growling" };
     var documentEmbeddings = try embed(io, allocator, &documents, "search_document", apiKey);
